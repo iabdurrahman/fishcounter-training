@@ -1,6 +1,11 @@
-train: /content/drive/MyDrive/fishcounter/patin-dataset/images/train
-val: /content/drive/MyDrive/fishcounter/patin-dataset/images/valid
-test: /content/drive/MyDrive/fishcounter/patin-dataset/images/test
+# train: ./images/train
+# val: ./images/valid
+# test: ./images/test
+train: ../../datasets/patin-dataset/images/train
+val: ../../datasets/patin-dataset/images/valid
+test: ../../datasets/patin-dataset/images/test
 
-nc: 1
-names: ['fish']
+is_coco: False
+
+nc: 3
+names: ['catfish', 'tilapia', 'fish']
