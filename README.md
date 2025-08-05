@@ -15,16 +15,18 @@ This repository contains the tools needed to train the YOLOv6 model used for Xir
 ### 1. Clone this repository
 
 ``` bash
-# Cloen the repo
-git clone git@github.com:ArvinNathanielTjong/fishcounter-training.git
+# Clone the repo
+git clone https://github.com/ArvinNathanielTjong/fishcounter-training.git
+
+
 
 # Install submodules
 git submodule update --init --recursive
 ```
 
-### 2. Setup the Python's Environment
+### 2. Setup the Python's Environment 
 
-Create a new virtual environment in this repository directory.
+Create a new virtual environment in this repository directory. (optional)
 
 ``` bash
 python3 -m venv venv
@@ -41,9 +43,14 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+
 ## How to Train your Model
 
-Run this script in the YOLOv6 directory
+### notes : make sure you change the config file pretrained path to the model that you want to continue training
+
+
+
+Run this script in the YOLOv6 directory (ubuntu)
 
 ``` bash
 python3 tools/train.py \
@@ -54,12 +61,20 @@ python3 tools/train.py \
   --epochs <epoch>
 ```
 
+Run this script in the YOLOv6 directory (windows)
+
+``` bash
+python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size 640 --batch-size 16 --epochs 1
+```
+
 | Param | Example |
 |-|-|
 | `<data-path>`   | `../../datasets/patin-dataset/data.yaml`    | 
 | `<conf-file>`   | `../../configs/yolov6n_finetune_cfg.py`  |
 | `<batch-size>`  | `16` |
 | `<epoch>`       | `10` |
+
+find your trained pt file in the run directory
 
 ## How to Test your Model
 
@@ -79,3 +94,38 @@ python3 tools/infer.py \
 |-|-|
 | `<weight-path>` | `../../runs/exp3/weights/best_ckpt.pt`    | 
 | `<yaml-file>`   | `../../datasets/patin-dataset/data.yaml`  |
+
+
+
+
+## PT file -> ONNX
+```
+pip install torch onnx
+```
+Then follow the instruction inside the training folder called ONNX_RKNNexport.ipynb
+
+notes : don't lose the onnx file (save it)
+
+## 🧠 RKNN Setup (For NPU)
+
+```bash
+sudo apt-get update
+sudo apt-get install cmake
+pip3 install rknn-toolkit2
+```
+
+notes : in the link below you need to gitclone the whole git first : 
+
+```
+git clone https://github.com/airockchip/rknn_model_zoo.git
+```
+go to the directory of 
+```
+/rknn_model_zoo/examples/yolov6/python
+```
+follow step number 4 below :
+
+Convert ONNX to RKNN:  
+🔗 https://github.com/airockchip/rknn_model_zoo/tree/main/examples/yolov6
+
+---
