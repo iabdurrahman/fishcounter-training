@@ -58,13 +58,14 @@ python3 tools/train.py \
   --conf-file <conf-file> \
   --img-size 640 \
   --batch-size <batch-size> \
-  --epochs <epoch>
+  --epochs <epoch> \
+  --device 0
 ```
 
 Run this script in the YOLOv6 directory (windows)
 
 ``` bash
-python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size 640 --batch-size 16 --epochs 1
+python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size 640 --batch-size <batch-size> --epochs <epoch> --device 0
 ```
 
 | Param | Example |
@@ -72,11 +73,11 @@ python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size
 | `<data-path>`   | `../../datasets/patin-dataset/data.yaml`    | 
 | `<conf-file>`   | `../../configs/yolov6n_finetune_cfg.py`  |
 | `<batch-size>`  | `16` |
-| `<epoch>`       | `10` |
+| `<epoch>`       | `100` | 
 
 find your trained pt file in the run directory
 
-## How to Test your Model
+## How to Test your Model (optional)
 
 Run this script in the YOLOv6 directory
 
@@ -102,7 +103,7 @@ python3 tools/infer.py \
 ```
 pip install torch onnx
 ```
-Then follow the instruction inside the training folder called ONNX_RKNNexport.ipynb
+Then follow the instruction inside the file called ONNX_RKNNexport.ipynb
 
 notes : don't lose the onnx file (save it)
 
