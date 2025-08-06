@@ -108,13 +108,18 @@ notes : don't lose the onnx file (save it)
 
 ## 🧠 RKNN Setup (For NPU)
 
+### DO THIS IN UBUNTU 
+
+
 ```bash
 sudo apt-get update
 sudo apt-get install cmake
 pip3 install rknn-toolkit2
 ```
 
-notes : in the link below you need to gitclone the whole git first : 
+notes : in the link below you need to gitclone the whole git first 
+
+THE CLONE IS ALREADY AVAILABLE AT THE THIRD PARTY FOLDER (CHECK IT !) 
 
 ```
 git clone https://github.com/airockchip/rknn_model_zoo.git
@@ -123,9 +128,18 @@ go to the directory of
 ```
 /rknn_model_zoo/examples/yolov6/python
 ```
+---
+
 follow step number 4 below :
 
 Convert ONNX to RKNN:  
 🔗 https://github.com/airockchip/rknn_model_zoo/tree/main/examples/yolov6
+
+### OR
+follow this but make sure the path is correct
+``` bash
+python convert.py ../../../../../models/onnxfile/best_ckpt.onnx rk3588
+
+```
 
 ---

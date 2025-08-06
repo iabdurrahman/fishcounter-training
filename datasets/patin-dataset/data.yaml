@@ -7,5 +7,5 @@ test: ../../datasets/patin-dataset/images/test
 
 is_coco: False
 
-nc: 3
-names: ['catfish', 'tilapia', 'fish']
+nc: 1
+names: ['fish']
