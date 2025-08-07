@@ -75,6 +75,12 @@ python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size
 | `<batch-size>`  | `16` |
 | `<epoch>`       | `100` | 
 
+notes : if you want to use a purely new model use the conf file built in to yolov6 which is in the 
+```
+"YOLOv6/configs/yolov6n.py"
+```
+because there are no pretrained (None)
+
 find your trained pt file in the run directory
 
 ## How to Test your Model (optional)
