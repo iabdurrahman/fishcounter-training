@@ -48,6 +48,21 @@ pip install -r requirements.txt
 
 ### notes : make sure you change the config file pretrained path to the model that you want to continue training
 
+### change somethings in the datasets : 
+
+go to the data.yaml of your dataset and make sure the path is ,correct 
+example : 
+
+```
+train: ../../datasets/patin-flow-dataset/images/train
+val: ../../datasets/patin-flow-dataset/images/valid
+test: ../../datasets/patin-flow-dataset/images/test
+
+is_coco: False #add this to the yaml file!
+
+```
+
+
 
 
 Run this script in the YOLOv6 directory (ubuntu)

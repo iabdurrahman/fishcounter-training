@@ -1,0 +1,8 @@
+train: ../../datasets/patin-flow-dataset-2/images/train
+val: ../../datasets/patin-flow-dataset-2/images/valid
+test: ../../datasets/patin-flow-dataset-2/images/test
+
+is_coco: False
+
+nc: 1
+names: ['fish']
