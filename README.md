@@ -46,6 +46,16 @@ pip install -r requirements.txt
 
 ## How to Train your Model
 
+### ROBOFLOW TUTORIAL
+
+go to https://app.roboflow.com/
+
+links to learn how to use roboflow : https://roboflow.com/learn 
+
+download the raw dataset for YOLOv6 
+
+---
+
 ### notes : make sure you change the config file pretrained path to the model that you want to continue training
 
 ### change somethings in the datasets : 
@@ -163,5 +173,26 @@ follow this but make sure the path is correct
 python convert.py ../../../../../models/onnxfile/best_ckpt.onnx rk3588
 
 ```
-
 ---
+
+### EXPLANATION (THE NUMBER 4 from the link above)
+
+```shell
+cd python
+python convert.py <onnx_model> <TARGET_PLATFORM> <dtype(optional)> <output_rknn_path(optional)>
+
+# such as: 
+python convert.py ../model/yolov6n.onnx rk3588
+# output model will be saved as ../model/yolov6.rknn
+```
+
+*Description:*
+
+- `<onnx_model>`: Specify ONNX model path.
+- `<TARGET_PLATFORM>`: Specify NPU platform name.  Such as 'rk3588'.
+- `<dtype>(optional)`: Specify as `i8`, `u8` or `fp`. `i8`/`u8` for doing quantization, `fp` for no quantization. Default is `i8`.
+- `<output_rknn_path>(optional)`: Specify save path for the RKNN model, default save in the same directory as ONNX model with name `yolov6.rknn`
+---
+
+
+
