@@ -9,7 +9,7 @@ Welcome to Fishcounter Training repository!
 This repository contains the tools needed to train the YOLOv6 model used for Xirka Fishcounter Device.
 
 ---
-## make sure you installed the cuda with the supported pytorch 
+## make sure you installed the cuda with the supported pytorch in your PC!
 - Install CUDA:  
   [Download CUDA 12.5](https://developer.nvidia.com/cuda-12-5-0-download-archive?target_os=Windows&target_arch=x86_64&target_version=11&target_type=exe_local)
 
