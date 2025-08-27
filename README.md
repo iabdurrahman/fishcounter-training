@@ -111,6 +111,7 @@ python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size
 | `<conf-file>`   | `../../configs/yolov6n_finetune_cfg.py`  |
 | `<batch-size>`  | `16` |
 | `<epoch>`       | `100` | 
+| `<device>`      | "--device cpu" for cpu training , "--device 0" for GPU training|
 
 notes : if you want to use a purely new model use the conf file built in to yolov6 which is in the 
 ```
