@@ -19,6 +19,9 @@ This repository contains the tools needed to train the YOLOv6 model used for Xir
 ## ^ skip this if you did it already
 ---
 
+### DOWNLOAD THE PYTORCH FROM THIS WEBSITE (pytorch 2.5.1) but with the same CUDA version as what you installed :
+link : https://pytorch.org/get-started/previous-versions/ 
+
 ## How to Setup
 
 ### 1. Clone this repository
