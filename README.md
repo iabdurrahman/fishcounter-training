@@ -108,18 +108,23 @@ python -m tools.train --data-path <data-path> --conf-file <conf-file> --img-size
 | Param | Example |
 |-|-|
 | `<data-path>`   | `../../datasets/patin-dataset/data.yaml`    | 
-| `<conf-file>`   | `../../configs/yolov6n_finetune_cfg.py`  |
+| `<conf-file>`   | `../../configs/yolov6n_finetune_cfg.py` (for continuing model), `./configs/yolov6n.py` (for training from scratch) |
 | `<batch-size>`  | `16` |
 | `<epoch>`       | `100` | 
 | `<device>`      | "--device cpu" for cpu training , "--device 0" for GPU training|
 
-notes : if you want to use a purely new model use the conf file built in to yolov6 which is in the 
+notes for continuing model :
+go to this file
 ```
-"YOLOv6/configs/yolov6n.py"
+../../configs/yolov6n_finetune_cfg.py
 ```
-because there are no pretrained (None)
+make sure this line : 
+```
+pretrained='C:/ITB/KP/kp/github/fishcounter-training/models/model_v0.pt',
+```
+is the correct PATH to your old model file (pt file)
 
-find your trained pt file in the run directory
+find your trained pt file in the run directory!
 
 ## How to Test your Model (optional)
 
