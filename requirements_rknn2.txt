@@ -1,0 +1,3 @@
+# must version 1.17.0 because 1.19.0 (latest) is not working
+onnx==1.17.0
+rknn-toolkit2
