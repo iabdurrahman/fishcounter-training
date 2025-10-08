@@ -137,14 +137,14 @@ PROJECT_ROOT="${WORKSPACE}"
 cd "\$PROJECT_ROOT/third-party/YOLOv6"
 
 # do training
-"tools/train.py" \
-	--data-path      "../../${DATASETS_DIR}/data.yaml" \
-	--conf-file      "../../${TRAINING_CONFIG}"  \
-	--img-size       640    \
-	--batch-size     16     \
-	--epochs         100    \
-	--device         0      \
-	--workers        2      \
+"tools/train.py" \\
+	--data-path      "../../${DATASETS_DIR}/data.yaml" \\
+	--conf-file      "../../${TRAINING_CONFIG}"  \\
+	--img-size       640    \\
+	--batch-size     16     \\
+	--epochs         100    \\
+	--device         0      \\
+	--workers        2      \\
 
 # deactivate environment variable
 deactivate
@@ -180,9 +180,9 @@ PROJECT_ROOT="${WORKSPACE}"
 cd "\$PROJECT_ROOT/third-party/YOLOv6"
 
 # convert pt file to onnx
-"deploy/RKNN/export_onnx_for_rknn.py" \
-	--weights "runs/train/exp/weights/best_ckpt.pt" \
-	--img-size "640" \
+"deploy/RKNN/export_onnx_for_rknn.py" \\
+	--weights "runs/train/exp/weights/best_ckpt.pt" \\
+	--img-size "640" \\
 	--device 0
 
 # deactivate environment variable
@@ -210,8 +210,8 @@ ONNX_FILE="../../../../YOLOv6/runs/train/exp/weights/best_ckpt.onnx"
 python "convert.py" "\$ONNX_FILE" rk3588
 
 # copy rknn file to runs directory file
-mv --verbose --interactive \
-	"\$PROJECT_ROOT/third-party/rknn_model_zoo/examples/yolov6/model/yolov6.rknn" \
+mv --verbose --interactive \\
+	"\$PROJECT_ROOT/third-party/rknn_model_zoo/examples/yolov6/model/yolov6.rknn" \\
 	"\$PROJECT_ROOT/third-party/YOLOv6/runs/train/exp/weights/best_ckpt.rknn"
 
 # deactivate environment variable
