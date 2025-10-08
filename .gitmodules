@@ -1,7 +1,3 @@
-[submodule "third-party/YOLOv6"]
-	path = third-party/YOLOv6
-	# url = https://github.com/meituan/YOLOv6.git
-	url = https://github.com/goldwinsonick/YOLOv6.git
 [submodule "third-party/rknn_model_zoo"]
 	path = third-party/rknn_model_zoo
 	url = https://github.com/airockchip/rknn_model_zoo.git
