@@ -1,0 +1,25 @@
+# backup files
+*.bak
+*_bak
+*~
+
+# python binary files
+__pycache__/
+*.pyc
+
+# docker-related file
+compose.yaml
+Dockerfile
+
+# git-related file
+.git/
+.gitignore
+.gitmodules
+
+# don't copy datasets
+datasets/
+
+# don't copy models except the one defined in
+# configs/yolov6n_finetune_cfg.py
+models/onnxfile/
+models/ptfile/

@@ -1,0 +1,7 @@
+services:
+  fishcounter-training:
+    build:
+      context: .
+      #dockerfile: Dockerfile.cpu
+    # immediately exit when run is invoked
+    entrypoint: "true"

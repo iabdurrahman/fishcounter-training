@@ -15,3 +15,7 @@ models/
 # ignore python binary files
 __pycache__/
 *.pyc
+
+# ignore virtual environment (from Dockerfile)
+venv3/
+venv3_rknn2/
