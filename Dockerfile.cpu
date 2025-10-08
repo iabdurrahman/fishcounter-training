@@ -20,7 +20,7 @@ ARG	DATASETS_DIR=datasets
 
 # for new training use third-party/YOLOv6/configs/yolov6n.py
 # this is the default
-ARG TRAINING_CONFIG=third-party/YOLOv6/configs/yolov6n_finetune_cfg.py
+ARG TRAINING_CONFIG=third-party/YOLOv6/configs/yolov6n.py
 
 
 # use ubuntu LTS (latest will pull LTS version)
