@@ -47,7 +47,53 @@ RUN   apt update \
 # set current directory
 WORKDIR ${WORKSPACE}
 
-# copy the repository
+# copy requirement file before copy repository
+# so we don't have to rebuild virtual environment for every repository change
+COPY  "requirements.txt"          "requirements.txt"
+
+# create virtual environment in current workspace for ai training
+# this pip install script is for pytorch and torchvision with gpu support (CUDA 12.8),
+#        please see https://pytorch.org/ and change pip installation syntax for
+#        torch and torchvision (and optionally torchaudio) to conform your host system
+#        you can check your host system (CUDA version) with nvidia-smi, see
+#        https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/sample-workload.html
+# THIS VIRTUAL ENVIROMENT IS ONLY FOR TORCH AND TORCHVISION WHICH IS ONLY FOR AI TRAINING
+RUN   python3 -m "virtualenv" --verbose --python "python3" --download "venv3" \
+	&& . "venv3/bin/activate" \
+	&& pip install --verbose "torch" "torchvision" \
+	&& pip install --verbose -r "requirements.txt" \
+	&& deactivate
+
+#  "torchaudio"
+
+# test if torch and torchvision is properly installed and can be run
+COPY --chmod=755 <<EOF "check.py"
+#!/usr/bin/env python
+import torch
+import torchvision
+print(f"Torch version: {torch.__version__}")
+print(f"Torchvision version: {torchvision.__version__}")
+EOF
+
+# run test (check.py)
+RUN   . "venv3/bin/activate" \
+	&& "./check.py" \
+	&& deactivate
+
+# requirement for rknn virtual environment
+COPY  "requirements_rknn2.txt"    "requirements_rknn2.txt"
+
+# create virtual environment only for rknn-toolkit2
+# use requirements_rknn2.txt as requirement file
+# THIS VIRTUAL ENVIRONMENT IS ONLY FOR CONVERTING TRAINING RESULT TO RKNN FORMAT
+RUN   python3 -m "virtualenv" --verbose --python "python3" --download "venv3_rknn2" \
+	&& . "venv3_rknn2/bin/activate" \
+	&& pip install --verbose -r "requirements_rknn2.txt" \
+	&& deactivate
+
+# no testing for this virtual environment
+
+# copy rest of the repository
 COPY  .   .
 
 # patch third-party/YOLOv6 repository
@@ -72,54 +118,7 @@ EOF
 RUN    chmod --verbose ugoa+x,go-w  "third-party/YOLOv6/tools/train.py" \
 	&& chmod --verbose ugoa+x,go-w  "third-party/YOLOv6/tools/infer.py" \
 	&& chmod --verbose ugoa+x,go-w  "third-party/YOLOv6/tools/test_load.py" \
-	&& chmod --verbose ugoa+x,go-w  "deploy/RKNN/export_onnx_for_rknn.py"
-
-# do not immediately copy all repository content (current directory is repository directory)
-# copy just requirements.txt file only
-COPY   "requirements.txt"   "requirements.txt"
-
-# copy patch file for requirements.txt
-COPY   "requirements.txt.patch"   "requirements.txt.patch"
-
-# patch requirements file
-RUN   patch --verbose --forward -p1 < "requirements.txt.patch"
-
-# create virtual environment in current workspace for ai training
-# this pip install script is for pytorch and torchvision with gpu support (CUDA 12.8),
-#        please see https://pytorch.org/ and change pip installation syntax for
-#        torch and torchvision (and optionally torchaudio) to conform your host system
-#        you can check your host system (CUDA version) with nvidia-smi, see
-#        https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/sample-workload.html
-# THIS VIRTUAL ENVIROMENT IS ONLY FOR TORCH AND TORCHVISION WHICH IS ONLY FOR AI TRAINING
-RUN   python3 -m "virtualenv" --verbose --python "python3" --download "venv3" \
-	&& . "venv3/bin/activate" \
-	&& pip install --verbose torch torchvision \
-	&& pip install --verbose -r "requirements.txt" \
-	&& deactivate
-
-# test if torch and torchvision is properly installed and can be run
-COPY --chmod=755 <<EOF "check.py"
-#!/usr/bin/env python
-import torch
-import torchvision
-print(f"Torch version: {torch.__version__}")
-print(f"Torchvision version: {torchvision.__version__}")
-EOF
-
-# run test (check.py)
-RUN   . "venv3/bin/activate" \
-	&& "./check.py" \
-	&& deactivate
-
-# create virtual environment only for rknn-toolkit2
-# use requirements_rknn2.txt as requirement file
-# THIS VIRTUAL ENVIRONMENT IS ONLY FOR CONVERTING TRAINING RESULT TO RKNN FORMAT
-RUN   python3 -m "virtualenv" --verbose --python "python3" --download "venv3_rknn2" \
-	&& . "venv3_rknn2/bin/activate" \
-	&& pip install --verbose -r "requirements_rknn2.txt" \
-	&& deactivate
-
-# no testing for this virtual environment
+	&& chmod --verbose ugoa+x,go-w  "third-party/YOLOv6/deploy/RKNN/export_onnx_for_rknn.py"
 
 # create wrapper script for training,
 #    then convert pt file to onnx,
