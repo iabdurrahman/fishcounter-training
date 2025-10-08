@@ -1,3 +1,17 @@
 venv/
 runs/
 test/
+
+# ignore update in datasets and model file
+# this repository is for script only but keep legacy dataset for exercise
+datasets/
+models/
+
+# ignore backup files
+*.bak
+*_bak
+*~
+
+# ignore python binary files
+__pycache__/
+*.pyc

@@ -1,0 +1,476 @@
+diff --git a/README.md b/README.md
+index 4aa94ab..f483e41 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,15 @@
++#### Get model optimized for RKNN
++Exports model with optimization for RKNN, please refer here [RKOPT_README.md](./deploy/RKNN/RKOPT_README.md)
++
++
++This optimization only affects the export of the model and does not affect the training process. **For the training steps, please refer to the YOLOv6 official documentation.**
++
++
++
++
++---
++
++
+ <p align="center">
+   <img src="assets/banner-YOLO.png" align="middle" width = "1000" />
+ </p>
+@@ -30,6 +42,11 @@ Implementation of paper:
+ - [2023.03.10] Release [YOLOv6-Face](https://github.com/meituan/YOLOv6/tree/yolov6-face). 🔥 [Performance](https://github.com/meituan/YOLOv6/tree/yolov6-face#performance-on-widerface)
+ - [2023.03.02] Update [base models](configs/base/README.md) to version 3.0.
+ - [2023.01.06] Release P6 models and enhance the performance of P5 models. ⭐️ [Benchmark](#Benchmark)
++    - Renew the neck of the detector with a BiC module and SimCSPSPPF Block.
++    - Propose an anchor-aided training (AAT) strategy.
++    - Involve a new self-distillation strategy for small models of YOLOv6.
++    - Expand YOLOv6 and hit a new
++    SOTA performance on the COCO dataset.
+ - [2022.11.04] Release [base models](configs/base/README.md) to simplify the training and deployment process.
+ - [2022.09.06] Customized quantization methods. 🚀 [Quantization Tutorial](./tools/qat/README.md)
+ - [2022.09.05] Release M/L models and update N/T/S models with enhanced performance.
+diff --git a/README_cn.md b/README_cn.md
+index d7181bc..ea2da4a 100644
+--- a/README_cn.md
++++ b/README_cn.md
+@@ -1,3 +1,13 @@
++#### 导出适配 rknpu 的模型
++适配 rknpu 的模型结构可以在 npu 上获得更高的推理效率。关于导出细节请参考  [RKOPT_README_zh.md](./deploy/RKNN/RKOPT_README_cn.md)
++
++此优化只影响了模型的导出，不影响训练过程，**训练步骤请参考 YOLOv6 官方文档**。
++
++
++
++
++---
++
+ <p align="center">
+   <img src="assets/banner-YOLO.png" align="middle" width = "1000" />
+ </p>
+@@ -20,6 +30,10 @@
+ - [2023.03.10] 发布 [YOLOv6-Face](https://github.com/meituan/YOLOv6/tree/yolov6-face). 🔥 [人脸检测模型指标](https://github.com/meituan/YOLOv6/blob/yolov6-face/README_cn.md#widerface-%E6%A8%A1%E5%9E%8B%E6%8C%87%E6%A0%87)
+ - [2023.03.02] 更新 [基础版模型](configs/base/README_cn.md) 到 3.0 版本
+ - [2023.01.06] 发布大分辨率 P6 模型以及对 P5 模型做了全面的升级 ⭐️ [模型指标](#模型指标)
++    - 添加 BiC 模块 和 SimCSPSPPF 模块以增强检测网络颈部的表征能力。
++    - 提出一个锚点辅助训练 (AAT) 策略。
++    - 为 YOLOv6 小模型引入一个新的自蒸馏训练策略。
++    - 扩展 YOLOv6 并在 COCO 上取得了实时目标检测 SOTA 的精度和速度。
+ - [2022.11.04] 发布 [基础版模型](configs/base/README_cn.md) 简化训练部署流程
+ - [2022.09.06] 定制化的模型量化加速方法 🚀 [量化教程](./tools/qat/README.md)
+ - [2022.09.05] 发布 M/L 模型，并且进一步提高了 N/T/S 模型的性能
+diff --git a/deploy/RKNN/RKOPT_README.md b/deploy/RKNN/RKOPT_README.md
+new file mode 100644
+index 0000000..0524a02
+--- /dev/null
++++ b/deploy/RKNN/RKOPT_README.md
+@@ -0,0 +1,50 @@
++## Description - export optimized model for RKNPU
++
++### 1. Model structure Adjustment
++
++- The dfl structure has poor performance on NPU processing, moved outside the model.
++
++  Assuming that there are 6000 candidate frames, the original model places the dfl structure before the "box confidence filter", then the 6000 candidate frames need to be calculated through dfl calculation. If the dfl structure is placed after the "box confidence filter", Assuming that there are 100 candidate boxes left after filtering, the calculation amount of the dfl part is reduced to 100, which greatly reduces the occupancy of computing resources and bandwidth resources.
++
++- Notice:  yolov6n/s  hasn't  dfl structure, while yolov6m/l has dfl structure
++
++
++
++- Assuming that there are 6000 candidate boxes and the detection category is 80, the threshold retrieval operation needs to be repeated 6000* 80 ~= 4.8*10^5 times, which takes a lot of time. Therefore, when exporting the model, an additional summation operation for 80 types of detection targets is added to the model to quickly filter the confidence. (This structure is effective in some cases, related to the training results of the model)
++
++  (v6m, v6l) To disable this optimization,  comment the following code in ./yolov6/models/effidehead.py (line70~86 part)
++
++  ```
++  cls_sum = torch.clamp(y[-1].sum(1, keepdim=True), 0, 1)
++  output_for_rknn.append(cls_sum)
++  ```
++
++  (v6n, v6s) To disable this optimization,  comment the following code in  ./yolov6/models/heads/effidehead_distill_ns.py (line78~94 part)
++  
++  ```
++  cls_sum = torch.clamp(y[-1].sum(1, keepdim=True), 0, 1)
++  output_for_rknn.append(cls_sum)
++  ```
++  
++
++
++
++- This optimization only affects the export of the model and does not affect the training process. **For the training steps, please refer to the YOLOv6 official documentation.**
++
++
++
++### 2. Export model operation
++
++After meeting the environmental requirements of ./requirements.txt, execute the following statement to export the model
++
++```
++python deploy/RKNN/export_onnx_for_rknn.py --weight ./yolov6n.pt
++
++# adjust ./yolov6n.pt path to export your model.
++```
++
++
++
++### 3.Transfer to RKNN model, Python demo, C demo
++
++Please refer https://github.com/airockchip/rknn_model_zoo/tree/main/models/CV/object_detection/yolo 
+\ No newline at end of file
+diff --git a/deploy/RKNN/RKOPT_README_cn.md b/deploy/RKNN/RKOPT_README_cn.md
+new file mode 100644
+index 0000000..904eb26
+--- /dev/null
++++ b/deploy/RKNN/RKOPT_README_cn.md
+@@ -0,0 +1,51 @@
++## RKNN 导出模型说明
++
++### 1.调整部分
++
++- 由于 dfl 结构在 npu 处理性能不佳。假设有6000个候选框，原模型将 dfl 结构放置于 ''框置信度过滤" 前，则 6000 个候选框都需要计算经过 dfl 计算；而将 dfl 结构放置于 ''框置信度过滤" 后，假设过程成 100 个候选框，则dfl部分计算量减少至 100 个。
++
++  故将 dfl 结构使用 cpu 处理的耗时，虽然享受不到 npu 加速，但是本来带来的计算量较少也是很可观的。
++  
++  注： yolov6n, yolov6s 没有 dfl 结构; yolov6m, yolov6l 存在 dfl 结构
++
++
++
++- 假设存在 6000 个候选框，存在 80 类检测目标，则阈值需要检索的置信度有 6000* 80 ～= 4.8*10^5 个，占据了较多耗时，故导出模型时，在模型中额外新增了对 80 类检测目标进行求和操作，用于快速过滤置信度，该结构在部分情况下对模型有效。
++
++  (v6m, v6l) 可以在 ./yolov6/models/effidehead.py 70~86行位置，注释掉这部分
++
++  ```
++  cls_sum = torch.clamp(y[-1].sum(1, keepdim=True), 0, 1)
++  output_for_rknn.append(cls_sum)
++  ```
++
++  (v6n, v6s) 可以在  yolov6/models/heads/effidehead_distill_ns.py 78~94行位置，注释掉这部分
++  
++  ```
++  cls_sum = torch.clamp(y[-1].sum(1, keepdim=True), 0, 1)
++  output_for_rknn.append(cls_sum)
++  ```
++  
++
++
++
++- 以上优化只影响了模型的导出，不影响训练过程，**训练步骤请参考 YOLOv6 官方文档**。
++
++
++
++
++### 2.导出模型操作
++
++在满足 ./requirements.txt 的环境要求后，执行以下语句导出模型
++
++```
++python deploy/RKNN/export_onnx_for_rknn.py --weight ./yolov6n.pt
++
++# 如果自己训练模型，则路径./yolov6n.pt 请改为自己模型的路径
++```
++
++
++
++### 3.转RKNN模型、Python demo、C demo
++
++请参考 https://github.com/airockchip/rknn_model_zoo/tree/main/models/CV/object_detection/yolo 
+\ No newline at end of file
+diff --git a/deploy/RKNN/export_onnx_for_rknn.py b/deploy/RKNN/export_onnx_for_rknn.py
+new file mode 100755
+index 0000000..e6f4d0e
+--- /dev/null
++++ b/deploy/RKNN/export_onnx_for_rknn.py
+@@ -0,0 +1,80 @@
++#!/usr/bin/env python3
++# -*- coding:utf-8 -*-
++import argparse
++import time
++import sys
++import os
++import torch
++import torch.nn as nn
++import onnx
++
++ROOT = os.getcwd()
++if str(ROOT) not in sys.path:
++    sys.path.append(str(ROOT))
++
++from yolov6.models.yolo import *
++from yolov6.models.effidehead import Detect
++from yolov6.layers.common import *
++from yolov6.utils.events import LOGGER
++from yolov6.utils.checkpoint import load_checkpoint
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser()
++    parser.add_argument('--weights', type=str, default='./yolov6s6.pt', help='weights path')
++    parser.add_argument('--img-size', nargs='+', type=int, default=[640, 640], help='image size')  # height, width
++    parser.add_argument('--batch-size', type=int, default=1, help='batch size')
++    parser.add_argument('--half', action='store_true', help='FP16 half-precision export')
++    parser.add_argument('--inplace', action='store_true', help='set Detect() inplace=True')
++    parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
++    args = parser.parse_args()
++    args.img_size *= 2 if len(args.img_size) == 1 else 1  # expand
++    print(args)
++    t = time.time()
++
++    # Check device
++    cuda = args.device != 'cpu' and torch.cuda.is_available()
++    device = torch.device('cuda:0' if cuda else 'cpu')
++    assert not (device.type == 'cpu' and args.half), '--half only compatible with GPU export, i.e. use --device 0'
++    # Load PyTorch model
++    model = load_checkpoint(args.weights, map_location=device, inplace=True, fuse=True)  # load FP32 model
++    for layer in model.modules():
++        if isinstance(layer, RepVGGBlock):
++            layer.switch_to_deploy()
++        elif isinstance(layer, nn.Upsample) and not hasattr(layer, 'recompute_scale_factor'):
++            layer.recompute_scale_factor = None  # torch 1.11.0 compatibility
++
++    # Input
++    img = torch.zeros(args.batch_size, 3, *args.img_size).to(device)  # image size(1,3,320,192) iDetection
++
++    # Update model
++    if args.half:
++        img, model = img.half(), model.half()  # to FP16
++    model.eval()
++    for k, m in model.named_modules():
++        if isinstance(m, ConvModule):  # assign export-friendly activations
++            if hasattr(m, 'act') and isinstance(m.act, nn.SiLU):
++                m.act = SiLU()
++        elif isinstance(m, Detect):
++            m.inplace = args.inplace
++
++    model.detect.export_rknn = True
++    y = model(img)  # dry run
++
++    # ONNX export
++    try:
++        LOGGER.info('\nStarting to export ONNX with rknn-optimized...')
++        export_file = args.weights.replace('.pt', '.onnx')  # filename
++        torch.onnx.export(model, img, export_file, verbose=False, opset_version=12,
++                          training=torch.onnx.TrainingMode.EVAL,
++                          do_constant_folding=True,
++                          input_names=['image_arrays'],
++                          output_names=['outputs'],
++                         )
++
++        # Checks
++        onnx_model = onnx.load(export_file)  # load onnx model
++        onnx.checker.check_model(onnx_model)  # check onnx model
++        LOGGER.info(f'ONNX with rknn-optimized export success, saved as {export_file}')
++    except Exception as e:
++        LOGGER.info(f'ONNX export failure: {e}')
+\ No newline at end of file
+diff --git a/tools/test_load.py b/tools/test_load.py
+new file mode 100755
+index 0000000..eece025
+--- /dev/null
++++ b/tools/test_load.py
+@@ -0,0 +1,62 @@
++#!/usr/bin/env python
++import pathlib
++import os
++import sys
++
++import torch
++
++from torch.serialization import add_safe_globals
++
++import numpy
++
++from torch.nn.modules.activation import ReLU, SiLU
++from torch.nn.modules.linear     import Identity
++from torch.nn.modules.conv       import Conv2d, ConvTranspose2d
++from torch.nn.modules.batchnorm  import BatchNorm2d
++from torch.nn.modules.container  import Sequential, ModuleList
++from torch.nn.modules.pooling    import MaxPool2d
++
++ROOT = os.getcwd()
++if str(ROOT) not in sys.path:
++    sys.path.append(str(ROOT))
++
++#from yolov6.models.efficientrep  import EfficientRep, EfficientRep6, CSPBepBackbone, CSPBepBackbone_P6, Lite_EffiBackbone
++from yolov6.models.efficientrep  import EfficientRep
++from yolov6.models.effidehead    import Detect
++#from yolov6.models.end2end       import ORT_NMS, TRT8_NMS, TRT7_NMS, ONNX_ORT, ONNX_TRT7, ONNX_TRT8, End2End
++#from yolov6.models.reppan        import RepPANNeck, RepBiFPANNeck, RepPANNeck6, RepBiFPANNeck6, CSPRepPANNeck, CSPRepBiFPANNeck, CSPRepPANNeck_P6, CSPRepBiFPANNeck_P6, Lite_EffiNeck
++from yolov6.models.reppan        import RepBiFPANNeck
++from yolov6.models.yolo          import Model as YOLOv6_Model
++#from yolov6.models.yolo_lite     import Model as YOLOv6_Model_Lite
++#from yolov6.layers.common        import *
++from yolov6.layers.common        import RepVGGBlock, ConvModule, RepBlock, SimCSPSPPF, CSPSPPFModule, ConvBNReLU, BiFusion, Transpose, ConvBNSiLU
++
++ckpt_dir = pathlib.Path("runs/train/exp/weights")
++
++#add_safe_globals([EfficientRep, EfficientRep6, CSPBepBackbone, CSPBepBackbone_P6, Lite_EffiBackbone,
++#	Detect,
++#	ORT_NMS, TRT8_NMS, TRT7_NMS, ONNX_ORT, ONNX_TRT7, ONNX_TRT8, End2End,
++#	RepPANNeck, RepBiFPANNeck, RepPANNeck6, RepBiFPANNeck6, CSPRepPANNeck, CSPRepBiFPANNeck, CSPRepPANNeck_P6, CSPRepBiFPANNeck_P6, Lite_EffiNeck,
++#	(YOLOv6_Model_Lite,  "yolov6.models.yolo_lite.Model"),
++#	SiLU, ConvModule, ConvBNReLU, ConvBNSiLU, ConvBN, ConvBNHS, SPPFModule, SimSPPF, SPPF, CSPSPPFModule, SimCSPSPPF, CSPSPPF, Transpose,
++#	RepVGGBlock, QARepVGGBlock, QARepVGGBlockV2, RealVGGBlock, ScaleLayer, LinearAddBlock, DetectBackend, RepBlock, BottleRep, BottleRep3,
++#	BepC3, MBLABlock, BiFusion, SEBlock, Lite_EffiBlockS1, Lite_EffiBlockS2, DPBlock, DarknetBlock, CSPBlock,
++add_safe_globals([
++	EfficientRep,
++	Detect,
++	RepBiFPANNeck,
++	(YOLOv6_Model,       "yolov6.models.yolo.Model"),
++	RepVGGBlock, ConvModule, RepBlock, SimCSPSPPF, CSPSPPFModule, ConvBNReLU, BiFusion, Transpose, ConvBNSiLU,
++	numpy._core.multiarray.scalar, numpy.dtype, numpy.dtypes.Float64DType,
++	ReLU, SiLU,
++	Identity,
++	Conv2d, ConvTranspose2d,
++	BatchNorm2d,
++	Sequential, ModuleList,
++	MaxPool2d])
++
++for s in ["best", "last"]:
++	ckpt_path = ckpt_dir / ("%s_ckpt.pt" % (s, ))
++	if (not ckpt_path.exists()):
++		raise FileNotFoundError()
++	ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"), weights_only=True)
+diff --git a/yolov6/core/engine.py b/yolov6/core/engine.py
+index 2de165b..b75b514 100644
+--- a/yolov6/core/engine.py
++++ b/yolov6/core/engine.py
+@@ -43,7 +43,7 @@ class Trainer:
+         self.max_epoch = args.epochs
+ 
+         if args.resume:
+-            self.ckpt = torch.load(args.resume, map_location='cpu')
++            self.ckpt = torch.load(args.resume, map_location='cpu', weights_only=False)
+ 
+         self.rank = args.rank
+         self.local_rank = args.local_rank
+@@ -447,7 +447,7 @@ class Trainer:
+         if not weights:
+             LOGGER.error("ERROR: No scales provided to init RepOptimizer!")
+         else:
+-            ckpt = torch.load(weights, map_location=device)
++            ckpt = torch.load(weights, map_location=device, weights_only=False)
+             scales = extract_scales(ckpt)
+         return scales
+ 
+diff --git a/yolov6/data/datasets.py b/yolov6/data/datasets.py
+index e00bd05..daba5fc 100644
+--- a/yolov6/data/datasets.py
++++ b/yolov6/data/datasets.py
+@@ -599,7 +599,20 @@ class TrainValDataset(Dataset):
+     @staticmethod
+     def generate_coco_format_labels(img_info, class_names, save_path):
+         # for evaluation with pycocotools
+-        dataset = {"categories": [], "annotations": [], "images": []}
++        dataset = {
++            "info": {
++                "description": "Converted from YOLO format",
++                "version": "1.0",
++                "year": 2025,
++                "contributor": "",
++                "date_created": ""
++            },
++            "licenses": [],
++            "categories": [],
++            "annotations": [],
++            "images": []
++        }
++
+         for i, class_name in enumerate(class_names):
+             dataset["categories"].append(
+                 {"id": i, "name": class_name, "supercategory": ""}
+diff --git a/yolov6/models/effidehead.py b/yolov6/models/effidehead.py
+index 55b7b06..0de2ee5 100644
+--- a/yolov6/models/effidehead.py
++++ b/yolov6/models/effidehead.py
+@@ -68,7 +68,28 @@ class Detect(nn.Module):
+         self.proj_conv.weight = nn.Parameter(self.proj.view([1, self.reg_max + 1, 1, 1]).clone().detach(),
+                                                    requires_grad=False)
+ 
++    def _rknn_opt_head(self, x):
++        output_for_rknn = []
++        for i in range(self.nl):
++            x[i] = self.stems[i](x[i])
++            reg_feat = self.reg_convs[i](x[i])
++            reg_output = self.reg_preds[i](reg_feat)
++
++            cls_feat = self.cls_convs[i](x[i])
++            cls_output = self.cls_preds[i](cls_feat)
++            cls_output = torch.sigmoid(cls_output)
++
++            cls_sum = torch.clamp(cls_output.sum(1, keepdim=True), 0, 1)
++
++            output_for_rknn.append(reg_output)
++            output_for_rknn.append(cls_output)
++            output_for_rknn.append(cls_sum)
++        return output_for_rknn
++
+     def forward(self, x):
++        if getattr(self, "export_rknn", False):
++            return self._rknn_opt_head(x)
++
+         if self.training:
+             cls_score_list = []
+             reg_distri_list = []
+diff --git a/yolov6/models/heads/effidehead_distill_ns.py b/yolov6/models/heads/effidehead_distill_ns.py
+index 912bd6c..66e87e5 100644
+--- a/yolov6/models/heads/effidehead_distill_ns.py
++++ b/yolov6/models/heads/effidehead_distill_ns.py
+@@ -76,7 +76,28 @@ class Detect(nn.Module):
+         self.proj_conv.weight = nn.Parameter(self.proj.view([1, self.reg_max + 1, 1, 1]).clone().detach(),
+                                                    requires_grad=False)
+ 
++    def _rknn_opt_head(self, x):
++        output_for_rknn = []
++        for i in range(self.nl):
++            x[i] = self.stems[i](x[i])
++            reg_feat = self.reg_convs[i](x[i])
++            reg_output = self.reg_preds_lrtb[i](reg_feat)
++
++            cls_feat = self.cls_convs[i](x[i])
++            cls_output = self.cls_preds[i](cls_feat)
++            cls_output = torch.sigmoid(cls_output)
++
++            cls_sum = torch.clamp(cls_output.sum(1, keepdim=True), 0, 1)
++
++            output_for_rknn.append(reg_output)
++            output_for_rknn.append(cls_output)
++            output_for_rknn.append(cls_sum)
++        return output_for_rknn
++
+     def forward(self, x):
++        if getattr(self, "export_rknn", False):
++            return self._rknn_opt_head(x)
++
+         if self.training:
+             cls_score_list = []
+             reg_distri_list = []
+diff --git a/yolov6/utils/checkpoint.py b/yolov6/utils/checkpoint.py
+index c2f6239..6b67e45 100644
+--- a/yolov6/utils/checkpoint.py
++++ b/yolov6/utils/checkpoint.py
+@@ -10,7 +10,7 @@ from yolov6.utils.torch_utils import fuse_model
+ 
+ def load_state_dict(weights, model, map_location=None):
+     """Load weights from checkpoint file, only assign weights those layers' name and shape are match."""
+-    ckpt = torch.load(weights, map_location=map_location)
++    ckpt = torch.load(weights, map_location=map_location, weights_only=False)
+     state_dict = ckpt['model'].float().state_dict()
+     model_state_dict = model.state_dict()
+     state_dict = {k: v for k, v in state_dict.items() if k in model_state_dict and v.shape == model_state_dict[k].shape}
+@@ -22,7 +22,7 @@ def load_state_dict(weights, model, map_location=None):
+ def load_checkpoint(weights, map_location=None, inplace=True, fuse=True):
+     """Load model from checkpoint file."""
+     LOGGER.info("Loading checkpoint from {}".format(weights))
+-    ckpt = torch.load(weights, map_location=map_location)  # load
++    ckpt = torch.load(weights, map_location=map_location, weights_only=False)  # load
+     model = ckpt['ema' if ckpt.get('ema') else 'model'].float()
+     if fuse:
+         LOGGER.info("\nFusing model...")
+@@ -49,7 +49,7 @@ def strip_optimizer(ckpt_dir, epoch):
+         ckpt_path = osp.join(ckpt_dir, '{}_ckpt.pt'.format(s))
+         if not osp.exists(ckpt_path):
+             continue
+-        ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
++        ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'), weights_only=False)
+         if ckpt.get('ema'):
+             ckpt['model'] = ckpt['ema']  # replace model with ema
+         for k in ['optimizer', 'ema', 'updates']:  # keys
