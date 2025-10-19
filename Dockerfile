@@ -136,6 +136,12 @@ PROJECT_ROOT="${WORKSPACE}"
 # change directory to third-party/YOLOv6
 cd "\$PROJECT_ROOT/third-party/YOLOv6"
 
+# in case of continue train, rename "runs" directory to "runs.1" (in YOLOv6)
+# then use best_ckpt.pt as previous model (defined in "$PROJECT_ROOT/configs/yolov6n_finetune_cfg.py")
+if [[ -d "runs" ]] ; then
+	mv --verbose --interactive "runs" "runs.1"
+fi
+
 # do training
 "tools/train.py" \\
 	--data-path      "../../${DATASETS_DIR}/data.yaml" \\
@@ -144,7 +150,7 @@ cd "\$PROJECT_ROOT/third-party/YOLOv6"
 	--batch-size     16     \\
 	--epochs         100    \\
 	--device         0      \\
-	--workers        2      \\
+	--workers        2
 
 # deactivate environment variable
 deactivate
