@@ -443,6 +443,58 @@ index 912bd6c..66e87e5 100644
          if self.training:
              cls_score_list = []
              reg_distri_list = []
+diff --git a/yolov6/models/losses/loss.py b/yolov6/models/losses/loss.py
+index ec53492..08312fb 100644
+--- a/yolov6/models/losses/loss.py
++++ b/yolov6/models/losses/loss.py
+@@ -205,7 +205,7 @@ class VarifocalLoss(nn.Module):
+     def forward(self, pred_score,gt_score, label, alpha=0.75, gamma=2.0):
+ 
+         weight = alpha * pred_score.pow(gamma) * (1 - label) + gt_score * label
+-        with torch.cuda.amp.autocast(enabled=False):
++        with torch.amp.autocast("cuda", enabled=False):
+             loss = (F.binary_cross_entropy(pred_score.float(), gt_score.float(), reduction='none') * weight).sum()
+ 
+         return loss
+diff --git a/yolov6/models/losses/loss_distill.py b/yolov6/models/losses/loss_distill.py
+index afc46ef..48c19c0 100644
+--- a/yolov6/models/losses/loss_distill.py
++++ b/yolov6/models/losses/loss_distill.py
+@@ -268,7 +268,7 @@ class VarifocalLoss(nn.Module):
+     def forward(self, pred_score,gt_score, label, alpha=0.75, gamma=2.0):
+ 
+         weight = alpha * pred_score.pow(gamma) * (1 - label) + gt_score * label
+-        with torch.cuda.amp.autocast(enabled=False):
++        with torch.amp.autocast("cuda", enabled=False):
+             loss = (F.binary_cross_entropy(pred_score.float(), gt_score.float(), reduction='none') * weight).sum()
+ 
+         return loss
+diff --git a/yolov6/models/losses/loss_distill_ns.py b/yolov6/models/losses/loss_distill_ns.py
+index 9a5ba9b..887ff09 100644
+--- a/yolov6/models/losses/loss_distill_ns.py
++++ b/yolov6/models/losses/loss_distill_ns.py
+@@ -248,7 +248,7 @@ class VarifocalLoss(nn.Module):
+     def forward(self, pred_score,gt_score, label, alpha=0.75, gamma=2.0):
+ 
+         weight = alpha * pred_score.pow(gamma) * (1 - label) + gt_score * label
+-        with torch.cuda.amp.autocast(enabled=False):
++        with torch.amp.autocast("cuda", enabled=False):
+             loss = (F.binary_cross_entropy(pred_score.float(), gt_score.float(), reduction='none') * weight).sum()
+ 
+         return loss
+diff --git a/yolov6/models/losses/loss_fuseab.py b/yolov6/models/losses/loss_fuseab.py
+index 4ae91f3..3e13886 100644
+--- a/yolov6/models/losses/loss_fuseab.py
++++ b/yolov6/models/losses/loss_fuseab.py
+@@ -170,7 +170,7 @@ class VarifocalLoss(nn.Module):
+     def forward(self, pred_score,gt_score, label, alpha=0.75, gamma=2.0):
+ 
+         weight = alpha * pred_score.pow(gamma) * (1 - label) + gt_score * label
+-        with torch.cuda.amp.autocast(enabled=False):
++        with torch.amp.autocast("cuda", enabled=False):
+             loss = (F.binary_cross_entropy(pred_score.float(), gt_score.float(), reduction='none') * weight).sum()
+ 
+         return loss
 diff --git a/yolov6/utils/checkpoint.py b/yolov6/utils/checkpoint.py
 index c2f6239..6b67e45 100644
 --- a/yolov6/utils/checkpoint.py
